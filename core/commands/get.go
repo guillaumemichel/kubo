@@ -3,6 +3,7 @@ package commands
 import (
 	"bufio"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,8 +18,8 @@ import (
 	"github.com/cheggaaa/pb"
 	cmds "github.com/ipfs/go-ipfs-cmds"
 	files "github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-libipfs/tar"
 	"github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/ipfs/tar-utils"
 )
 
 var ErrInvalidCompressionLevel = errors.New("compression level must be between 1 and 9")
@@ -61,7 +62,7 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 		return err
 	},
 	Run: func(req *cmds.Request, res cmds.ResponseEmitter, env cmds.Environment) error {
-		ctx := req.Context
+		ctx := context.WithValue(req.Context, "bitswapOnly", true)
 		cmplvl, err := getCompressOptions(req)
 		if err != nil {
 			return err
@@ -75,6 +76,7 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 		p := path.New(req.Arguments[0])
 
 		file, err := api.Unixfs().Get(ctx, p)
+		return err
 		if err != nil {
 			return err
 		}
